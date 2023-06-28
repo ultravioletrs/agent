@@ -1,0 +1,70 @@
+syntax = "proto3";
+
+package ultravioletrs.cocos.auth;
+
+option go_package = "./auth";
+
+// AuthService is the interface for the authorization service.
+service AuthService {
+    // AddPolicy adds a new policy to the authorization service.
+    // The userID and computationID are used a primary keys for the policy.
+    rpc AddPolicy(AddPolicyReq) returns (AddPolicyRes) {}
+
+    // UpdatePolicy updates an existing policy in the authorization service.
+    // It updates either the cloud role or the manifest role, or both.
+    rpc UpdatePolicy(UpdatePolicyReq) returns (UpdatePolicyRes) {}
+
+    // DeletePolicy deletes an existing policy from the authorization service.
+    // Uses the userID and computationID as primary keys to delete the policy.
+    rpc DeletePolicy(DeletePolicyReq) returns (DeletePolicyRes) {}
+
+    // Authorize checks whether the given user is authorized to perform
+    // the given action on the given computation.
+    rpc Authorize(AuthorizeReq) returns (AuthorizeRes) {}
+}
+
+message AddPolicyReq {
+    string token                 = 1;
+    string user                  = 2;
+    string computation           = 3;
+    repeated string cloudRole    = 4;
+    repeated string manifestRole = 5;
+    string publicKey             = 6;
+}
+
+message AddPolicyRes {
+    bool added = 1;
+}
+
+message UpdatePolicyReq {
+    string token                 = 1;
+    string user                  = 2;
+    string computation           = 3;
+    repeated string cloudRole    = 4;
+    repeated string manifestRole = 5;
+}
+
+message UpdatePolicyRes {
+    bool updated = 1;
+}
+
+message DeletePolicyReq {
+    string token       = 1;
+    string user        = 2;
+    string computation = 3;
+}
+
+message DeletePolicyRes {
+    bool deleted = 1;
+}
+
+message AuthorizeReq {
+    string user        = 1;
+    string computation = 2;
+    string role        = 3;
+    string domain      = 4;
+}
+
+message AuthorizeRes {
+    bool authorized = 1;
+}
