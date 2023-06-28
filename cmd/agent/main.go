@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"io"
-	"io/ioutil"
 	"log"
 	"net"
 	"net/http"
@@ -11,18 +10,19 @@ import (
 	"os/signal"
 	"syscall"
 
+	kitprometheus "github.com/go-kit/kit/metrics/prometheus"
 	"github.com/mainflux/mainflux"
 	"github.com/mainflux/mainflux/logger"
+	opentracing "github.com/opentracing/opentracing-go"
+	stdprometheus "github.com/prometheus/client_golang/prometheus"
+	jconfig "github.com/uber/jaeger-client-go/config"
 	agent "github.com/ultravioletrs/agent/agent"
 	"github.com/ultravioletrs/agent/agent/api"
 	agentgrpc "github.com/ultravioletrs/agent/agent/api/grpc"
 	agenthttpapi "github.com/ultravioletrs/agent/agent/api/http"
+	authClient "github.com/ultravioletrs/agent/internal/clients/grpc/auth"
+	"github.com/ultravioletrs/cocos/auth"
 	"google.golang.org/grpc"
-
-	kitprometheus "github.com/go-kit/kit/metrics/prometheus"
-	opentracing "github.com/opentracing/opentracing-go"
-	stdprometheus "github.com/prometheus/client_golang/prometheus"
-	jconfig "github.com/uber/jaeger-client-go/config"
 )
 
 const (
@@ -34,13 +34,14 @@ const (
 	defSecret     = "secret"
 	defGRPCAddr   = "localhost:7002"
 
-	envLogLevel   = "AGENT_LOG_LEVEL"
-	envHTTPPort   = "AGENT_HTTP_PORT"
-	envServerCert = "AGENT_SERVER_CERT"
-	envServerKey  = "AGENT_SERVER_KEY"
-	envSecret     = "AGENT_SECRET"
-	envJaegerURL  = "JAEGER_URL"
-	envGRPCAddr   = "AGENT_GRPC_ADDR"
+	envLogLevel       = "AGENT_LOG_LEVEL"
+	envHTTPPort       = "AGENT_HTTP_PORT"
+	envServerCert     = "AGENT_SERVER_CERT"
+	envServerKey      = "AGENT_SERVER_KEY"
+	envSecret         = "AGENT_SECRET"
+	envJaegerURL      = "JAEGER_URL"
+	envGRPCAddr       = "AGENT_GRPC_ADDR"
+	envPrefixAuthGrpc = "AGENT_AUTH_GRPC_"
 )
 
 type config struct {
@@ -64,7 +65,15 @@ func main() {
 	agentTracer, agentCloser := initJaeger("agent", cfg.jaegerURL, logger)
 	defer agentCloser.Close()
 
-	svc := newService(cfg.secret, logger)
+	auth, authHandler, err := authClient.Setup(envPrefixAuthGrpc, cfg.jaegerURL, "auth")
+	if err != nil {
+		logger.Fatal(err.Error())
+	}
+	defer authHandler.Close()
+
+	logger.Info("Successfully connected to auth grpc server " + authHandler.Secure())
+
+	svc := newService(cfg.secret, auth, logger)
 	errs := make(chan error, 2)
 
 	go startgRPCServer(cfg, &svc, logger, errs)
@@ -94,7 +103,7 @@ func loadConfig() config {
 
 func initJaeger(svcName, url string, logger logger.Logger) (opentracing.Tracer, io.Closer) {
 	if url == "" {
-		return opentracing.NoopTracer{}, ioutil.NopCloser(nil)
+		return opentracing.NoopTracer{}, io.NopCloser(nil)
 	}
 
 	tracer, closer, err := jconfig.Configuration{
@@ -116,8 +125,8 @@ func initJaeger(svcName, url string, logger logger.Logger) (opentracing.Tracer, 
 	return tracer, closer
 }
 
-func newService(secret string, logger logger.Logger) agent.Service {
-	svc := agent.New(secret)
+func newService(secret string, auth auth.AuthServiceClient, logger logger.Logger) agent.Service {
+	svc := agent.New(secret, auth)
 
 	svc = api.LoggingMiddleware(svc, logger)
 	svc = api.MetricsMiddleware(

@@ -6,7 +6,9 @@ package agent
 import (
 	"context"
 	"encoding/json"
-	"errors"
+
+	"github.com/mainflux/mainflux/pkg/errors"
+	"github.com/ultravioletrs/cocos/auth"
 )
 
 var (
@@ -34,14 +36,23 @@ type Service interface {
 
 type agentService struct {
 	secret string
+	auth   auth.AuthServiceClient
 }
+
+const (
+	dRole          = "dataset_provider"
+	aRole          = "algorithm_provider"
+	rRole          = "result_consumer"
+	manifestDomain = "manifest"
+)
 
 var _ Service = (*agentService)(nil)
 
 // New instantiates the agent service implementation.
-func New(secret string) Service {
+func New(secret string, auth auth.AuthServiceClient) Service {
 	return &agentService{
 		secret: secret,
+		auth:   auth,
 	}
 }
 
@@ -62,6 +73,11 @@ func (ks *agentService) Run(ctx context.Context, cmp Computation) (string, error
 }
 
 func (as *agentService) Algo(ctx context.Context, algorithm []byte) (string, error) {
+	// Since we don't have a userID and computationID, we pass empty strings
+	// for those parameters. We also ignore the error returned by the authorize
+	// method since it will fail anyway.
+	_ = as.authorize(ctx, "", "", aRole)
+
 	// Implement the logic for the Algo method based on your requirements
 	// Use the provided ctx and algorithm parameters as needed
 
@@ -74,6 +90,11 @@ func (as *agentService) Algo(ctx context.Context, algorithm []byte) (string, err
 }
 
 func (as *agentService) Data(ctx context.Context, dataset string) (string, error) {
+	// Since we don't have a userID and computationID, we pass empty strings
+	// for those parameters. We also ignore the error returned by the authorize
+	// method since it will fail anyway.
+	_ = as.authorize(ctx, "", "", dRole)
+
 	// Implement the logic for the Data method based on your requirements
 	// Use the provided ctx and dataset parameters as needed
 
@@ -86,6 +107,11 @@ func (as *agentService) Data(ctx context.Context, dataset string) (string, error
 }
 
 func (as *agentService) Result(ctx context.Context) ([]byte, error) {
+	// Since we don't have a userID and computationID, we pass empty strings
+	// for those parameters. We also ignore the error returned by the authorize
+	// method since it will fail anyway.
+	_ = as.authorize(ctx, "", "", rRole)
+
 	// Implement the logic for the Result method based on your requirements
 	// Use the provided ctx parameter as needed
 
@@ -96,4 +122,21 @@ func (as *agentService) Result(ctx context.Context) ([]byte, error) {
 
 	// Return the result file or an error
 	return result, nil
+}
+
+func (as *agentService) authorize(ctx context.Context, user, computation, role string) error {
+	req := &auth.AuthorizeReq{
+		User:        user,
+		Computation: computation,
+		Role:        role,
+		Domain:      manifestDomain,
+	}
+	res, err := as.auth.Authorize(ctx, req)
+	if err != nil {
+		return errors.Wrap(errors.ErrAuthorization, err)
+	}
+	if !res.GetAuthorized() {
+		return errors.ErrAuthorization
+	}
+	return nil
 }
