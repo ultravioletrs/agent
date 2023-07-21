@@ -93,7 +93,6 @@ func main() {
 	g.Go(func() error {
 		return hs.Start()
 	})
-
 	g.Go(func() error {
 		return gs.Start()
 	})

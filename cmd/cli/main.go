@@ -31,7 +31,7 @@ func main() {
 
 	logger, err := logger.New(os.Stdout, cfg.LogLevel)
 	if err != nil {
-		log.Fatalf("Error creating logger: %s", err)
+		log.Fatalf(err.Error())
 	}
 
 	agentGRPCConfig := grpc.Config{}

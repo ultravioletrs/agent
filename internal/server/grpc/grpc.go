@@ -80,7 +80,6 @@ func (s *Server) Start() error {
 		return s.Stop()
 	case err := <-errCh:
 		s.Cancel()
-
 		return err
 	}
 }

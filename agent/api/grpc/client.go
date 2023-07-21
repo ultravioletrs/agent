@@ -11,9 +11,7 @@ import (
 	"google.golang.org/grpc"
 )
 
-const (
-	svcName = "agent_proto.AgentService"
-)
+const svcName = "agent_proto.AgentService"
 
 type grpcClient struct {
 	run     endpoint.Endpoint
