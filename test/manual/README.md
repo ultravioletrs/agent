@@ -2,6 +2,18 @@
 
 ## CLI
 
+Throughout the tests, we assume that our current working directory is the root of the `agent` repository.
+
+### Python virtual environment
+
+```sh
+apt update
+apt install python3-pip
+pip3 install pandas sklearn scikit-learn
+```
+
+### Agent-CLI interaction
+
 Open a console and start `agent`
 
 ```sh
