@@ -392,6 +392,90 @@ func (x *ResultResponse) GetFile() []byte {
 	return nil
 }
 
+type AttestationRequest struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+}
+
+func (x *AttestationRequest) Reset() {
+	*x = AttestationRequest{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_agent_agent_proto_msgTypes[6]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *AttestationRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AttestationRequest) ProtoMessage() {}
+
+func (x *AttestationRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_agent_agent_proto_msgTypes[6]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ResultRequest.ProtoReflect.Descriptor instead.
+func (*AttestationRequest) Descriptor() ([]byte, []int) {
+	return file_agent_agent_proto_rawDescGZIP(), []int{6}
+}
+
+type AttestationResponse struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	File []byte `protobuf:"bytes,1,opt,name=file,proto3" json:"file,omitempty"`
+}
+
+func (x *AttestationResponse) Reset() {
+	*x = AttestationResponse{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_agent_agent_proto_msgTypes[7]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *AttestationResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AttestationResponse) ProtoMessage() {}
+
+func (x *AttestationResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_agent_agent_proto_msgTypes[7]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ResultResponse.ProtoReflect.Descriptor instead.
+func (*AttestationResponse) Descriptor() ([]byte, []int) {
+	return file_agent_agent_proto_rawDescGZIP(), []int{7}
+}
+
+func (x *AttestationResponse) GetFile() []byte {
+	if x != nil {
+		return x.File
+	}
+	return nil
+}
 var File_agent_agent_proto protoreflect.FileDescriptor
 
 var file_agent_agent_proto_rawDesc = []byte{

@@ -22,6 +22,7 @@ type AgentServiceClient interface {
 	Algo(ctx context.Context, in *AlgoRequest, opts ...grpc.CallOption) (*AlgoResponse, error)
 	Data(ctx context.Context, in *DataRequest, opts ...grpc.CallOption) (*DataResponse, error)
 	Result(ctx context.Context, in *ResultRequest, opts ...grpc.CallOption) (*ResultResponse, error)
+	Attestation(ctx context.Context, in *AttestationRequest, opts ...grpc.CallOption) (*AttestationResponse, error)
 }
 
 type agentServiceClient struct {
@@ -68,6 +69,15 @@ func (c *agentServiceClient) Result(ctx context.Context, in *ResultRequest, opts
 	return out, nil
 }
 
+func (c *agentServiceClient) Attestation(ctx context.Context, in *AttestationRequest, opts ...grpc.CallOption) (*AttestationResponse, error) {
+	out := new(AttestationResponse)
+	err := c.cc.Invoke(ctx, "/agent.AgentService/Attestation", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // AgentServiceServer is the server API for AgentService service.
 // All implementations must embed UnimplementedAgentServiceServer
 // for forward compatibility
@@ -76,6 +86,7 @@ type AgentServiceServer interface {
 	Algo(context.Context, *AlgoRequest) (*AlgoResponse, error)
 	Data(context.Context, *DataRequest) (*DataResponse, error)
 	Result(context.Context, *ResultRequest) (*ResultResponse, error)
+	Attestation(context.Context, *AttestationRequest) (*AttestationResponse, error)
 	mustEmbedUnimplementedAgentServiceServer()
 }
 
@@ -94,6 +105,9 @@ func (UnimplementedAgentServiceServer) Data(context.Context, *DataRequest) (*Dat
 }
 func (UnimplementedAgentServiceServer) Result(context.Context, *ResultRequest) (*ResultResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Result not implemented")
+}
+func (UnimplementedAgentServiceServer) Attestation(context.Context, *ResultRequest) (*ResultResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Attestation not implemented")
 }
 func (UnimplementedAgentServiceServer) mustEmbedUnimplementedAgentServiceServer() {}
 
@@ -180,6 +194,23 @@ func _AgentService_Result_Handler(srv interface{}, ctx context.Context, dec func
 	return interceptor(ctx, in, info, handler)
 }
 
+func _AgentService_Attestation_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AttestationRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AgentServiceServer).Attestation(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/agent.AgentService/Attestation",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AgentServiceServer).Attestation(ctx, req.(*AttestationRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
 // AgentService_ServiceDesc is the grpc.ServiceDesc for AgentService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)

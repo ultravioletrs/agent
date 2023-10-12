@@ -14,6 +14,7 @@ type SDK interface {
 	UploadAlgorithm(algorithm []byte) (string, error)
 	UploadDataset(dataset []byte) (string, error)
 	Result() ([]byte, error)
+	Attestation() ([]byte, error)
 }
 
 type agentSDK struct {
@@ -98,6 +99,18 @@ func (sdk *agentSDK) Result() ([]byte, error) {
 	request := &agent.ResultRequest{}
 
 	response, err := sdk.client.Result(context.Background(), request)
+	if err != nil {
+		sdk.logger.Error("Failed to call Result RPC")
+		return nil, err
+	}
+
+	return response.File, nil
+}
+
+func (sdk *agentSDK) Attestation() ([]byte, error) {
+	request := &agent.AttestationRequest{}
+
+	response, err := sdk.client.Attestation(context.Background(), request)
 	if err != nil {
 		sdk.logger.Error("Failed to call Result RPC")
 		return nil, err
