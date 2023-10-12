@@ -82,6 +82,7 @@ func main() {
 	rootCmd.AddCommand(cli.NewDatasetsCmd(sdk))
 	rootCmd.AddCommand(cli.NewResultsCmd(sdk))
 	rootCmd.AddCommand(cli.NewRunCmd(sdk))
+	rootCmd.AddCommand(cli.NewAttestationCmd(sdk))
 
 	if err := rootCmd.Execute(); err != nil {
 		logger.Error(fmt.Sprintf("Command execution failed: %s", err))
