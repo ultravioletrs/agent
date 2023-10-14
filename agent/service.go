@@ -5,6 +5,8 @@ package agent
 
 import (
 	"context"
+	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -44,7 +46,9 @@ type agentService struct {
 }
 
 const socketPath = "unix_socket"
-const pyRuntime = "python3"
+
+// const pyRuntime = "python3"
+const pyRuntime = "/home/darko/anaconda3/bin/python"
 
 var _ Service = (*agentService)(nil)
 
@@ -54,14 +58,19 @@ func New() Service {
 }
 
 func (as *agentService) Run(ctx context.Context, cmp Computation) (string, error) {
-	cmpJSON, err := json.Marshal(cmp)
+	cmpSlice, err := json.Marshal(cmp)
 	if err != nil {
 		return "", err
 	}
 
 	as.computation = cmp
 
-	return string(cmpJSON), nil // return the JSON string as the function's string return value
+	// Calculate the SHA-256 hash of the algorithm
+	hash := sha256.Sum256(cmpSlice)
+	cmpHash := hex.EncodeToString(hash[:])
+
+	// Return the algorithm hash or an error
+	return cmpHash, nil
 }
 
 func (as *agentService) Algo(ctx context.Context, algorithm []byte) (string, error) {
@@ -70,12 +79,12 @@ func (as *agentService) Algo(ctx context.Context, algorithm []byte) (string, err
 
 	as.algorithms = append(as.algorithms, algorithm)
 
-	// Perform some processing on the algorithm byte array
-	// For example, generate a unique ID for the algorithm
-	algorithmID := "algo123"
+	// Calculate the SHA-256 hash of the algorithm
+	hash := sha256.Sum256(algorithm)
+	algorithmHash := hex.EncodeToString(hash[:])
 
-	// Return the algorithm ID or an error
-	return algorithmID, nil
+	// Return the algorithm hash or an error
+	return algorithmHash, nil
 }
 
 func (as *agentService) Data(ctx context.Context, dataset []byte) (string, error) {
@@ -84,12 +93,12 @@ func (as *agentService) Data(ctx context.Context, dataset []byte) (string, error
 
 	as.datasets = append(as.datasets, dataset)
 
-	// Perform some processing on the dataset string
-	// For example, generate a unique ID for the dataset
-	datasetID := "dataset456"
+	// Calculate the SHA-256 hash of the dataset
+	hash := sha256.Sum256(dataset)
+	datasetHash := hex.EncodeToString(hash[:])
 
-	// Return the dataset ID or an error
-	return datasetID, nil
+	// Return the dataset hash or an error
+	return datasetHash, nil
 }
 
 func (as *agentService) Result(ctx context.Context) ([]byte, error) {
@@ -147,9 +156,9 @@ func run(algoContent []byte, dataContent []byte) ([]byte, error) {
 		return nil, fmt.Errorf("error starting Python script: %v", err)
 	}
 
-	var receivedData []byte
+	var result []byte
 	select {
-	case receivedData = <-dataChannel:
+	case result = <-dataChannel:
 	case err = <-errorChannel:
 		return nil, fmt.Errorf("error receiving data: %v", err)
 	}
@@ -158,5 +167,5 @@ func run(algoContent []byte, dataContent []byte) ([]byte, error) {
 		return nil, fmt.Errorf("python script execution error: %v", err)
 	}
 
-	return receivedData, nil
+	return result, nil
 }
