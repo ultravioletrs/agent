@@ -112,7 +112,7 @@ func (sdk *agentSDK) Attestation() ([]byte, error) {
 
 	response, err := sdk.client.Attestation(context.Background(), request)
 	if err != nil {
-		sdk.logger.Error("Failed to call Result RPC")
+		sdk.logger.Error("Failed to call Attestation RPC")
 		return nil, err
 	}
 
